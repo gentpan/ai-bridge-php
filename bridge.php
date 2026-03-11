@@ -47,6 +47,9 @@ $CONFIG = [
 
 // 错误处理
 set_error_handler(function ($severity, $message, $file, $line) {
+    if ($severity === E_DEPRECATED || $severity === E_USER_DEPRECATED) {
+        return true;
+    }
     throw new ErrorException($message, 0, $severity, $file, $line);
 });
 
@@ -76,8 +79,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 // 路由处理
-$path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-$path = str_replace(dirname($_SERVER['SCRIPT_NAME']), '', $path);
+$uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+
+if (!empty($_SERVER['PATH_INFO'])) {
+    $path = $_SERVER['PATH_INFO'];
+} else {
+    $scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
+    $isPhpScript = strpos(basename($scriptName), '.php') !== false;
+    if ($isPhpScript && strpos($uri, $scriptName) === 0) {
+        // 直接访问: /path/bridge.php/endpoint
+        $path = substr($uri, strlen($scriptName));
+    } elseif ($isPhpScript) {
+        // URL 重写: 去掉脚本所在目录前缀
+        $scriptDir = dirname($scriptName);
+        if ($scriptDir !== '/' && $scriptDir !== '\\' && $scriptDir !== '.' && strpos($uri, $scriptDir) === 0) {
+            $path = substr($uri, strlen($scriptDir));
+        } else {
+            $path = $uri;
+        }
+    } else {
+        // PHP 内置服务器或其他情况: 直接使用 URI
+        $path = $uri;
+    }
+}
 $path = trim($path, '/');
 
 switch ($path) {
@@ -354,20 +378,6 @@ function split_system_messages($messages) {
         'system' => implode("\n\n", $system_parts),
         'messages' => $filtered,
     ];
-}
-
-/**
- * 标准化消息格式
- */
-function normalize_messages($messages) {
-    $normalized = [];
-    foreach ($messages as $msg) {
-        $normalized[] = [
-            'role' => $msg['role'],
-            'content' => $msg['content'],
-        ];
-    }
-    return $normalized;
 }
 
 /**

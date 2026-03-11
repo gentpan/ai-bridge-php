@@ -4,7 +4,9 @@
 
 ## 项目背景
 
-由于网络环境和政策限制，中国大陆和香港的服务器无法稳定访问 OpenAI、Anthropic (Claude)、Google Gemini 等海外 AI 服务的 API。AI Bridge 通过在海外部署一台代理网关来解决这一问题 —— 国内服务器将 AI 请求发送到你的海外网关，再由网关转发至 AI 服务商。
+由于网络环境和政策限制，中国大陆和香港的服务器无法稳定访问 OpenAI、Anthropic (Claude)、Google Gemini 等海外 AI 服务的 API。虽然本地开发时可以借助代理工具，但对于线上运行的 WordPress 站点或其他服务端应用，直接从国内/港区服务器调用这些 AI API 几乎不可行。
+
+AI Bridge 通过在海外部署一台轻量级代理网关来解决这一问题 —— 国内服务器将 AI 请求发送到你的海外网关，再由网关转发至 AI 服务商，实现稳定、安全的 AI API 访问。
 
 本仓库是 AI Bridge 的 PHP 轻量版后端，适用于没有 Docker 环境的共享主机或虚拟主机。如果你的服务器支持 Docker，推荐使用性能更好的 [Go 版本](https://github.com/gentpan/ai-bridge-go)。
 
@@ -22,140 +24,55 @@
 本程序是一个纯粹的 **反向代理**，不存储任何 API Key，不缓存任何对话内容：
 
 ```
-WordPress (国内) ──→ bridge.php (海外 PHP 主机) ──→ AI 服务商 (OpenAI 等)
-                 ←──          原样回传响应         ←──
+┌─────────────┐         ┌─────────────────┐         ┌─────────────────┐
+│  WordPress  │  POST   │   bridge.php    │  POST   │   AI 服务商      │
+│  (国内服务器) │ ──────→ │  (海外 PHP 主机) │ ──────→ │  (OpenAI 等)    │
+│             │         │                 │         │                 │
+│  插件发送    │         │  1. 读取 provider│         │                 │
+│  AI 请求    │         │  2. 查内置地址表  │         │                 │
+│             │         │  3. 用你的 API   │         │                 │
+│             │ ←────── │     Key 转发请求 │ ←────── │  返回 AI 响应    │
+│  收到响应    │  JSON   │  4. 原样回传结果  │  JSON   │                 │
+└─────────────┘         └─────────────────┘         └─────────────────┘
 ```
-
-插件发送请求时附带 `provider`、`model`、消息内容和 API Key，本程序根据 `provider` 转发到对应的 AI 服务商，再把响应原样返回。纯网络中继，解决的是国内服务器无法直连海外 API 的问题。
 
 ## 功能特性
 
 - 单文件部署，无依赖
 - 支持 OpenAI、Claude、Google Gemini、DeepSeek
-- 自托管模式，直接使用 AI 服务商 API Key
+- 无需鉴权，直接使用 AI 服务商 API Key
 - 兼容共享主机、虚拟主机环境
-
-## 部署要求
-
-- PHP 7.4+
-- curl 扩展
-- 允许出站 HTTPS 连接
+- 要求 PHP 7.4+，curl 扩展
 
 ## 快速开始
 
-### 1. 下载
-
-```bash
-wget https://github.com/gentpan/ai-bridge-php/releases/latest/download/bridge.php
-```
-
-或从 [Releases](https://github.com/gentpan/ai-bridge-php/releases) 页面手动下载。
-
-### 2. 上传到服务器
-
-将 `bridge.php` 上传到 PHP 服务器的 Web 目录：
+将 `bridge.php` 上传到海外 PHP 服务器的 Web 目录：
 
 ```
 https://your-domain.com/ai-bridge/bridge.php
 ```
 
-### 3. 验证部署
+### 验证
 
 ```bash
 curl https://your-domain.com/ai-bridge/bridge.php/healthz
-# 返回 {"ok":true, "mode":"self-hosted", ...}
+# {"ok":true, "mode":"Self-Hosted", ...}
 ```
 
-### 4. 配置 WordPress 插件
+## WordPress 插件配置
 
 1. 安装 [AI Bridge 插件](https://github.com/gentpan/global-ai-bridge)
 2. 进入 WordPress 后台 → 工具 → AI Bridge
-3. 连接方式选择「自定义地址」
-4. 填入地址：`https://your-domain.com/ai-bridge/bridge.php/v1/chat/completions`
-5. **AI Bridge 访问令牌**：留空（自托管不需要）
-6. **模型 API Token**：填入你的 OpenAI / Claude / Gemini 等 API Key
+3. 连接方式选择「使用自己的服务器（自托管）」
+4. 填入后端地址：`https://your-domain.com/ai-bridge/bridge.php/v1/chat/completions`
+5. **AI Bridge 访问令牌**：留空
+6. **模型 API Token**：填入你的 OpenAI / Claude 等 API Key
 7. 保存后点击「测速当前节点」验证
 
-## 请求示例
+## 更多信息
 
-```bash
-curl -X POST https://your-domain.com/ai-bridge/bridge.php/v1/chat/completions \
-  -H "Content-Type: application/json" \
-  -H "X-AIBRIDGE-PROVIDER-TOKEN: sk-your-openai-key" \
-  -d '{
-    "provider": "openai",
-    "model": "gpt-4.1-mini",
-    "messages": [{"role": "user", "content": "Hello"}]
-  }'
-```
-
-## 支持的提供商
-
-| 提供商        | provider 值          | 需要的 API Key    |
-| ------------- | -------------------- | ----------------- |
-| OpenAI        | `openai`             | OpenAI API Key    |
-| Claude        | `claude`             | Anthropic API Key |
-| Google Gemini | `google` 或 `gemini` | Google AI API Key |
-| DeepSeek      | `deepseek`           | DeepSeek API Key  |
-
-## 自定义配置
-
-编辑 `bridge.php` 顶部的 `$CONFIG` 数组：
-
-```php
-$CONFIG = [
-    'debug' => false,
-    'allowed_origins' => ['*'],
-    'providers' => [
-        'openai' => [
-            'base_url' => 'https://api.openai.com/v1',
-            'default_model' => 'gpt-4.1-mini',
-        ],
-        'claude' => [
-            'base_url' => 'https://api.anthropic.com/v1',
-        ],
-        'google' => [
-            'base_url' => 'https://generativelanguage.googleapis.com/v1beta',
-        ],
-        'deepseek' => [
-            'base_url' => 'https://api.deepseek.com/v1',
-        ],
-    ],
-];
-```
-
-## Nginx 配置（可选）
-
-如果想隐藏 `.php` 后缀：
-
-```nginx
-location /ai-bridge/ {
-    try_files $uri $uri/ /ai-bridge/bridge.php?$query_string;
-}
-```
-
-配置后访问地址变为：`https://your-domain.com/ai-bridge/v1/chat/completions`
-
-## 与 Go 版本的区别
-
-| 特性           | PHP 版本   | Go 版本 |
-| -------------- | ---------- | ------- |
-| 部署方式       | 单文件上传 | Docker  |
-| 部署要求       | PHP 7.4+   | 无依赖  |
-| 性能           | 中等       | 高      |
-| 内存占用       | 较高       | 低      |
-| 速率限制       | ❌         | ✅      |
-| 请求指标统计   | ❌         | ✅      |
-| Connector 代理 | ❌         | ✅      |
-
-## 适用场景
-
-- 共享主机 / 虚拟主机环境
-- 已有 PHP 服务器，不想额外运行 Go 进程
-- 快速测试 AI Bridge 功能
-- 低流量个人站点
-
-> 生产环境建议使用 [Go 版本](https://github.com/gentpan/ai-bridge-go)，性能更好、功能更完整。
+- [Go 后端（推荐）](https://github.com/gentpan/ai-bridge-go)
+- [WordPress 插件](https://github.com/gentpan/global-ai-bridge)
 
 ## License
 
