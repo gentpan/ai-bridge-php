@@ -1,11 +1,21 @@
 # AI Bridge PHP
 
-Lightweight single-file PHP backend for AI Bridge — proxy AI API requests without Go or Docker.
+单文件 PHP 版 AI API 反向代理，专为解决中国大陆及香港地区无法直接访问 OpenAI、Claude、Google Gemini 等海外 AI 服务而设计。无需 Go 环境或 Docker，上传一个文件即可运行。
+
+## 项目背景
+
+由于网络环境和政策限制，中国大陆和香港的服务器无法稳定访问 OpenAI、Anthropic (Claude)、Google Gemini 等海外 AI 服务的 API。AI Bridge 通过在海外部署一台代理网关来解决这一问题 —— 国内服务器将 AI 请求发送到你的海外网关，再由网关转发至 AI 服务商。
+
+本仓库是 AI Bridge 的 PHP 轻量版后端，适用于没有 Docker 环境的共享主机或虚拟主机。如果你的服务器支持 Docker，推荐使用性能更好的 [Go 版本](https://github.com/gentpan/ai-bridge-go)。
+
+> **⚠️ 部署要求：** 本程序必须部署在能够正常访问海外 AI 服务 API 的服务器上，如美国、日本、新加坡等地区的主机。**请勿部署在中国大陆或香港服务器上**，否则仍然无法访问目标 API。
+
+**安全保障：** API Key 仅在你自己的服务器上流转，不经过任何第三方平台，杜绝密钥泄露风险。
 
 > **相关仓库**
 >
 > - WordPress 插件：[gentpan/global-ai-bridge](https://github.com/gentpan/global-ai-bridge)
-> - Go 后端（推荐）：[gentpan/ai-bridge](https://github.com/gentpan/ai-bridge)
+> - Go 后端（推荐）：[gentpan/ai-bridge-go](https://github.com/gentpan/ai-bridge-go)
 
 ## 功能特性
 
