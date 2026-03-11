@@ -129,15 +129,12 @@ location /ai-bridge/ {
 
 | 特性           | PHP 版本   | Go 版本         |
 | -------------- | ---------- | --------------- |
-| 部署方式       | 单文件上传 | Docker / 二进制 |
+| 部署方式       | 单文件上传 | Docker          |
 | 部署要求       | PHP 7.4+   | 无依赖          |
 | 性能           | 中等       | 高              |
 | 内存占用       | 较高       | 低              |
-| 托管模式       | ❌         | ✅              |
-| Token 管理     | ❌         | ✅              |
-| 使用量统计     | ❌         | ✅              |
-| 邮件通知       | ❌         | ✅              |
 | 速率限制       | ❌         | ✅              |
+| 请求指标统计   | ❌         | ✅              |
 | Connector 代理 | ❌         | ✅              |
 
 ## 适用场景
@@ -147,7 +144,7 @@ location /ai-bridge/ {
 - 快速测试 AI Bridge 功能
 - 低流量个人站点
 
-> 生产环境建议使用 [Go 版本](https://github.com/gentpan/ai-bridge)，性能更好、功能更完整。
+> 生产环境建议使用 [Go 版本](https://github.com/gentpan/ai-bridge-go)，性能更好、功能更完整。
 
 ## License
 
