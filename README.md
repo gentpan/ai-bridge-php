@@ -17,6 +17,17 @@
 > - WordPress 插件：[gentpan/global-ai-bridge](https://github.com/gentpan/global-ai-bridge)
 > - Go 后端（推荐）：[gentpan/ai-bridge-go](https://github.com/gentpan/ai-bridge-go)
 
+## 工作原理
+
+本程序是一个纯粹的 **反向代理**，不存储任何 API Key，不缓存任何对话内容：
+
+```
+WordPress (国内) ──→ bridge.php (海外 PHP 主机) ──→ AI 服务商 (OpenAI 等)
+                 ←──          原样回传响应         ←──
+```
+
+插件发送请求时附带 `provider`、`model`、消息内容和 API Key，本程序根据 `provider` 转发到对应的 AI 服务商，再把响应原样返回。纯网络中继，解决的是国内服务器无法直连海外 API 的问题。
+
 ## 功能特性
 
 - 单文件部署，无依赖
@@ -127,15 +138,15 @@ location /ai-bridge/ {
 
 ## 与 Go 版本的区别
 
-| 特性           | PHP 版本   | Go 版本         |
-| -------------- | ---------- | --------------- |
-| 部署方式       | 单文件上传 | Docker          |
-| 部署要求       | PHP 7.4+   | 无依赖          |
-| 性能           | 中等       | 高              |
-| 内存占用       | 较高       | 低              |
-| 速率限制       | ❌         | ✅              |
-| 请求指标统计   | ❌         | ✅              |
-| Connector 代理 | ❌         | ✅              |
+| 特性           | PHP 版本   | Go 版本 |
+| -------------- | ---------- | ------- |
+| 部署方式       | 单文件上传 | Docker  |
+| 部署要求       | PHP 7.4+   | 无依赖  |
+| 性能           | 中等       | 高      |
+| 内存占用       | 较高       | 低      |
+| 速率限制       | ❌         | ✅      |
+| 请求指标统计   | ❌         | ✅      |
+| Connector 代理 | ❌         | ✅      |
 
 ## 适用场景
 
