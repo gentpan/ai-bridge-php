@@ -1,27 +1,39 @@
+<div align="center">
+
 # AI Bridge PHP
 
-单文件 PHP 版 AI API 反向代理，专为解决中国大陆及香港地区无法直接访问 OpenAI、Claude、Google Gemini 等海外 AI 服务而设计。无需 Go 环境或 Docker，上传一个文件即可运行。
+**单文件 PHP AI API 反向代理 · 上传即用，无需 Docker**
 
-## 项目背景
+<p>
+  <img src="https://img.shields.io/badge/PHP-7.4%2B-777BB4?style=for-the-badge&logo=php&logoColor=white" alt="PHP">
+  <img src="https://img.shields.io/badge/license-MIT-brightgreen?style=for-the-badge" alt="License">
+  <img src="https://img.shields.io/badge/deploy-single--file-2ea44f?style=for-the-badge" alt="Single File">
+  <img src="https://img.shields.io/github/v/release/gentpan/ai-bridge-php?style=for-the-badge" alt="Release">
+  <img src="https://img.shields.io/github/stars/gentpan/ai-bridge-php?style=for-the-badge" alt="Stars">
+</p>
 
-由于网络环境和政策限制，中国大陆和香港的服务器无法稳定访问 OpenAI、Anthropic (Claude)、Google Gemini 等海外 AI 服务的 API。虽然本地开发时可以借助代理工具，但对于线上运行的 WordPress 站点或其他服务端应用，直接从国内/港区服务器调用这些 AI API 几乎不可行。
+<p>
+  <a href="https://github.com/gentpan/ai-bridge-go">Go 版（推荐）</a> ·
+  <a href="https://github.com/gentpan/ai-bridge">WordPress 插件</a>
+</p>
 
-AI Bridge 通过在海外部署一台轻量级代理网关来解决这一问题 —— 国内服务器将 AI 请求发送到你的海外网关，再由网关转发至 AI 服务商，实现稳定、安全的 AI API 访问。
+</div>
 
-本仓库是 AI Bridge 的 PHP 轻量版后端，适用于没有 Docker 环境的共享主机或虚拟主机。如果你的服务器支持 Docker，推荐使用性能更好的 [Go 版本](https://github.com/gentpan/ai-bridge-go)。
+---
 
-> **⚠️ 部署要求：** 本程序必须部署在能够正常访问海外 AI 服务 API 的服务器上，如美国、日本、新加坡等地区的主机。**请勿部署在中国大陆或香港服务器上**，否则仍然无法访问目标 API。
+## 📖 概述
 
-**安全保障：** API Key 仅在你自己的服务器上流转，不经过任何第三方平台，杜绝密钥泄露风险。
+AI Bridge PHP 是一个**单文件** PHP AI API 反向代理，专为解决中国大陆及香港地区无法直接访问 OpenAI、Claude、Google Gemini 等海外 AI 服务而设计。
 
-> **相关仓库**
->
-> - WordPress 插件：[gentpan/global-ai-bridge](https://github.com/gentpan/global-ai-bridge)
-> - Go 后端（推荐）：[gentpan/ai-bridge-go](https://github.com/gentpan/ai-bridge-go)
+**无需 Go 环境，无需 Docker，上传一个文件即可运行。** 适合共享主机、虚拟主机等轻量环境。
 
-## 工作原理
+> ⚠️ **部署要求：** 必须部署在能正常访问海外 AI 服务 API 的服务器上（美国、日本、新加坡等地区）。**请勿部署在中国大陆或香港服务器上。**
 
-本程序是一个纯粹的 **反向代理**，不存储任何 API Key，不缓存任何对话内容：
+---
+
+## 🔧 工作原理
+
+本程序是一个纯粹的**反向代理**，不存储任何 API Key，不缓存任何对话内容：
 
 ```
 ┌─────────────┐         ┌─────────────────┐         ┌─────────────────┐
@@ -36,15 +48,21 @@ AI Bridge 通过在海外部署一台轻量级代理网关来解决这一问题 
 └─────────────┘         └─────────────────┘         └─────────────────┘
 ```
 
-## 功能特性
+---
 
-- 单文件部署，无依赖
-- 支持 OpenAI、Claude、Google Gemini、DeepSeek
-- 无需鉴权，直接使用 AI 服务商 API Key
-- 兼容共享主机、虚拟主机环境
-- 要求 PHP 7.4+，curl 扩展
+## ✨ 特性
 
-## 快速开始
+- 📄 **单文件部署** — 一个 `bridge.php`，零依赖
+- 🤖 **多平台支持** — OpenAI、Claude、Google Gemini、DeepSeek
+- 🔑 **绝对安全** — API Key 仅在你服务器上流转
+- 🏠 **共享主机友好** — 无需 SSH root 权限，虚拟主机也能跑
+- ⚡ **极低开销** — PHP 7.4+，仅需 curl 扩展
+
+---
+
+## 🚀 快速开始
+
+### 1. 部署
 
 将 `bridge.php` 上传到海外 PHP 服务器的 Web 目录：
 
@@ -52,16 +70,16 @@ AI Bridge 通过在海外部署一台轻量级代理网关来解决这一问题 
 https://your-domain.com/ai-bridge/bridge.php
 ```
 
-### 验证
+### 2. 验证
 
 ```bash
 curl https://your-domain.com/ai-bridge/bridge.php/healthz
 # {"ok":true, "mode":"Self-Hosted", ...}
 ```
 
-## WordPress 插件配置
+### 3. WordPress 插件配置
 
-1. 安装 [AI Bridge 插件](https://github.com/gentpan/global-ai-bridge)
+1. 安装 [AI Bridge 插件](https://github.com/gentpan/ai-bridge)
 2. 进入 WordPress 后台 → 工具 → AI Bridge
 3. 连接方式选择「使用自己的服务器（自托管）」
 4. 填入后端地址：`https://your-domain.com/ai-bridge/bridge.php/v1/chat/completions`
@@ -69,11 +87,17 @@ curl https://your-domain.com/ai-bridge/bridge.php/healthz
 6. **模型 API Token**：填入你的 OpenAI / Claude 等 API Key
 7. 保存后点击「测速当前节点」验证
 
-## 更多信息
+---
 
-- [Go 后端（推荐）](https://github.com/gentpan/ai-bridge-go)
-- [WordPress 插件](https://github.com/gentpan/global-ai-bridge)
+## 🔗 关联项目
 
-## License
+| 仓库 | 说明 |
+|------|------|
+| [ai-bridge](https://github.com/gentpan/ai-bridge) | WordPress 插件 + Go 后端组合包 |
+| [ai-bridge-go](https://github.com/gentpan/ai-bridge-go) | Go 版后端代理（高性能推荐，Docker 部署） |
+
+---
+
+## 📄 License
 
 MIT
